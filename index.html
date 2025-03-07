@@ -20,6 +20,10 @@
     <div class="form-container">
         <form id="itemForm" onsubmit="submitForm(event)">
             <div class="form-group">
+                <label for="entryDate">Entry Date:</label>
+                <input type="date" id="entryDate" name="entryDate" required>
+            </div>
+            <div class="form-group">
                 <label for="itemName">Item Name:</label>
                 <select id="itemName" name="itemName" required>
                     <option value="">Select Item</option>
@@ -38,16 +42,20 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" name="quantity" min="1" required>
+                <label for="quantityIn">Quantity In:</label>
+                <input type="number" id="quantityIn" name="quantityIn" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="quantityOut">Quantity Out:</label>
+                <input type="number" id="quantityOut" name="quantityOut" min="1" required>
             </div>
             <button type="submit">Submit</button>
         </form>
     </div>
 
     <script>
-        // Replace with your actual Google Apps Script Web App URL from the latest deployment
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxDZVooZ-tthKrk0GiPB0dJlMimQDBIkQ7vVS1CGvnhZssLCQ2ZiAl8skjcUAssSTqRFg/exec';
+        // Replace with your actual Google Apps Script Web App URL
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRZzwW7Hjbc1HGl53JJHKnLeV9mr9kDO9G4IippBVENwoApR0-pfUOzJX6OKvnNi38JA/exec';
 
         // Load dropdown options when page loads
         window.onload = function() {
@@ -61,7 +69,7 @@
             console.log('Attempting to fetch from:', url);
             fetch(url, {
                 method: 'GET',
-                redirect: 'follow' // Handle potential redirects
+                redirect: 'follow'
             })
                 .then(response => {
                     console.log('Response status:', response.status);
@@ -92,7 +100,6 @@
                 console.error(`Element with ID ${elementId} not found`);
                 return;
             }
-            // Clear existing options except the default
             while (select.options.length > 1) {
                 select.remove(1);
             }
