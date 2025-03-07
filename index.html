@@ -59,21 +59,21 @@
 
     <script>
         // Replace with your actual Google Apps Script Web App URL
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyHHWMx0ZFwoNF2GUTgP_d2esiGXSRtEFVpodj-N9BamPQDP8Gh7IrLXmuDXHON4_O4bw/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbztD5nk7rsM5dwxtWuDNJXKA_RiPD5zOmRGlchLfvd9jSIsKkz5KbpHYlFiJXBlB-zEwQ/exec';
 
         // Object to store the last submitted dropdown values
         let lastEntry = {
             itemName: '',
             grade: '',
             color: '',
-            transactionType: '' // Added to store last Transaction Type
+            transactionType: ''
         };
 
         // Load dropdown options when page loads
         window.onload = function() {
             console.log('Page loaded, fetching options from:', scriptURL);
             fetchOptions();
-            populateTransactionType(); // Populate Transaction Type dropdown
+            populateTransactionType(); // Populate static Transaction Type dropdown
         };
 
         // Fetch dropdown options from Google Sheets for Item Name, Grade, Color
@@ -119,7 +119,7 @@
                 console.error(`Element with ID ${elementId} not found`);
                 return;
             }
-            // Clear existing options except the default (for dynamic dropdowns)
+            // Clear existing options except the default
             while (select.options.length > 1) {
                 select.remove(1);
             }
