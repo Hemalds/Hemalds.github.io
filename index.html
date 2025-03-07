@@ -42,12 +42,16 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="quantityIn">Quantity In:</label>
-                <input type="number" id="quantityIn" name="quantityIn" min="1" required>
+                <label for="transactionType">Transaction Type:</label>
+                <select id="transactionType" name="transactionType" required>
+                    <option value="">Select Type</option>
+                    <option value="In">In</option>
+                    <option value="Out">Out</option>
+                </select>
             </div>
             <div class="form-group">
-                <label for="quantityOut">Quantity Out:</label>
-                <input type="number" id="quantityOut" name="quantityOut" min="1" required>
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" min="1" required>
             </div>
             <button type="submit">Submit</button>
         </form>
@@ -55,15 +59,24 @@
 
     <script>
         // Replace with your actual Google Apps Script Web App URL
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzWD7IhzElNPZo15qNHe_M6PxoHn-CVePWm_ez1jEm7tmVSYK06p-fsofpEBBCEKFyqcg/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyHHWMx0ZFwoNF2GUTgP_d2esiGXSRtEFVpodj-N9BamPQDP8Gh7IrLXmuDXHON4_O4bw/exec';
+
+        // Object to store the last submitted dropdown values
+        let lastEntry = {
+            itemName: '',
+            grade: '',
+            color: '',
+            transactionType: '' // Added to store last Transaction Type
+        };
 
         // Load dropdown options when page loads
         window.onload = function() {
             console.log('Page loaded, fetching options from:', scriptURL);
             fetchOptions();
+            populateTransactionType(); // Populate Transaction Type dropdown
         };
 
-        // Fetch dropdown options from Google Sheets
+        // Fetch dropdown options from Google Sheets for Item Name, Grade, Color
         function fetchOptions() {
             const url = scriptURL + '?action=getOptions';
             console.log('Attempting to fetch from:', url);
@@ -72,34 +85,41 @@
                 redirect: 'follow'
             })
                 .then(response => {
-                    console.log('Response status:', response.status);
+                    console.log('Dropdown fetch status:', response.status);
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Fetched data:', data);
+                    console.log('Fetched dropdown data:', data);
                     if (!data.itemNames || !data.grades || !data.colors) {
-                        console.warn('Incomplete data received:', data);
+                        console.warn('Incomplete dropdown data received:', data);
                     }
-                    populateDropdown('itemName', data.itemNames || []);
-                    populateDropdown('grade', data.grades || []);
-                    populateDropdown('color', data.colors || []);
+                    populateDropdown('itemName', data.itemNames || [], lastEntry.itemName);
+                    populateDropdown('grade', data.grades || [], lastEntry.grade);
+                    populateDropdown('color', data.colors || [], lastEntry.color);
                 })
                 .catch(error => {
-                    console.error('Fetch error:', error.message);
+                    console.error('Dropdown fetch error:', error.message);
                 });
         }
 
-        // Populate dropdowns with options
-        function populateDropdown(elementId, options) {
-            console.log(`Populating ${elementId} with:`, options);
+        // Populate Transaction Type dropdown (static options)
+        function populateTransactionType() {
+            const options = ['In', 'Out'];
+            populateDropdown('transactionType', options, lastEntry.transactionType);
+        }
+
+        // Populate dropdowns with options and prefill last entry if provided
+        function populateDropdown(elementId, options, prefillValue = '') {
+            console.log(`Populating ${elementId} with:`, options, 'Prefill:', prefillValue);
             const select = document.getElementById(elementId);
             if (!select) {
                 console.error(`Element with ID ${elementId} not found`);
                 return;
             }
+            // Clear existing options except the default (for dynamic dropdowns)
             while (select.options.length > 1) {
                 select.remove(1);
             }
@@ -109,6 +129,9 @@
                         const opt = document.createElement('option');
                         opt.value = option;
                         opt.textContent = option;
+                        if (option === prefillValue) {
+                            opt.selected = true; // Prefill with last entry
+                        }
                         select.appendChild(opt);
                     }
                 });
@@ -126,7 +149,16 @@
                 return;
             }
             const formData = new FormData(form);
-            console.log('Submitting form data:', Object.fromEntries(formData));
+            const formDataObj = Object.fromEntries(formData);
+            console.log('Form data being sent:', formDataObj);
+            
+            // Store dropdown values before submitting
+            lastEntry.itemName = formDataObj.itemName;
+            lastEntry.grade = formDataObj.grade;
+            lastEntry.color = formDataObj.color;
+            lastEntry.transactionType = formDataObj.transactionType;
+            console.log('Last entry stored:', lastEntry);
+            
             fetch(scriptURL, {
                 method: 'POST',
                 body: formData,
@@ -135,15 +167,19 @@
                 .then(response => {
                     console.log('Submit response status:', response.status);
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        throw new Error(`Submit HTTP error! Status: ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Submit response:', data);
+                    console.log('Server response:', data);
                     if (data.result === 'success') {
                         alert('Data submitted successfully!');
+                        // Reset form but keep dropdowns prefilled
                         form.reset();
+                        // Repopulate dropdowns with last entry
+                        fetchOptions();
+                        populateTransactionType();
                     } else {
                         alert('Error submitting data: ' + (data.error || 'Unknown error'));
                     }
