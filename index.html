@@ -68,4 +68,83 @@
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
-                    return response.json
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched data:', data);
+                    if (!data.itemNames || !data.grades || !data.colors) {
+                        console.warn('Incomplete data received:', data);
+                    }
+                    populateDropdown('itemName', data.itemNames || []);
+                    populateDropdown('grade', data.grades || []);
+                    populateDropdown('color', data.colors || []);
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error.message);
+                });
+        }
+
+        // Populate dropdowns with options
+        function populateDropdown(elementId, options) {
+            console.log(`Populating ${elementId} with:`, options);
+            const select = document.getElementById(elementId);
+            if (!select) {
+                console.error(`Element with ID ${elementId} not found`);
+                return;
+            }
+            // Clear existing options except the default
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            if (options && Array.isArray(options)) {
+                options.forEach(option => {
+                    if (option) {
+                        const opt = document.createElement('option');
+                        opt.value = option;
+                        opt.textContent = option;
+                        select.appendChild(opt);
+                    }
+                });
+            } else {
+                console.warn(`No valid options for ${elementId}`);
+            }
+        }
+
+        // Handle form submission
+        function submitForm(event) {
+            event.preventDefault();
+            const form = document.getElementById('itemForm');
+            if (!form) {
+                console.error('Form not found');
+                return;
+            }
+            const formData = new FormData(form);
+            console.log('Submitting form data:', Object.fromEntries(formData));
+            fetch(scriptURL, {
+                method: 'POST',
+                body: formData,
+                redirect: 'follow'
+            })
+                .then(response => {
+                    console.log('Submit response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Submit response:', data);
+                    if (data.result === 'success') {
+                        alert('Data submitted successfully!');
+                        form.reset();
+                    } else {
+                        alert('Error submitting data: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Submit error:', error.message);
+                });
+        }
+    </script>
+</body>
+</html>
